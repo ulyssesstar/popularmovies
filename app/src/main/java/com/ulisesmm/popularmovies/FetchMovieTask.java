@@ -12,8 +12,12 @@ import com.ulisesmm.popularmovies.util.OpenMovieJsonUtils;
 import java.net.URL;
 import java.util.ArrayList;
 
+
 /**
- * Created by ulises on 28/05/17.
+ * Created by Adrian Ulises Mercado Martínez on 28/05/17.
+ *
+ * This code is based on student and sunshine examples
+ * of the course Associate Android Developer Fast Track Nanodegree Program of Udacity
  */
 
 public class FetchMovieTask extends AsyncTask<String, Void, ArrayList<Movie>> {
