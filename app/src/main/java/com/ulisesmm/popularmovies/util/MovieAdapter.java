@@ -14,6 +14,9 @@ import com.ulisesmm.popularmovies.R;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by Adrian Ulises Mercado Martínez on 26/05/17.
  *
@@ -24,8 +27,6 @@ import java.util.List;
 public class MovieAdapter  extends  RecyclerView.Adapter<MovieAdapter.MovieViewHolder>{
 
     private final MovieAdapterOnClickHandler mClickHandler;
-
-
     List<Movie> mMoviesData;
 
     public MovieAdapter(MovieAdapterOnClickHandler clickHandler){
@@ -37,14 +38,12 @@ public class MovieAdapter  extends  RecyclerView.Adapter<MovieAdapter.MovieViewH
     }
 
     public class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
-        public final ImageView mMovieImageView;
-        public final TextView mMovieTextView;
-        
+        @BindView(R.id.iv_image_movie) ImageView mMovieImageView;
+        @BindView(R.id.tv_title) TextView mMovieTextView;
 
         public MovieViewHolder(View itemView){
             super(itemView);
-            mMovieImageView = (ImageView) itemView.findViewById(R.id.iv_image_movie);
-            mMovieTextView = (TextView) itemView.findViewById(R.id.tv_title);
+            ButterKnife.bind(this, itemView);
             itemView.setOnClickListener(this);
         }
 
@@ -75,7 +74,11 @@ public class MovieAdapter  extends  RecyclerView.Adapter<MovieAdapter.MovieViewH
         movieHolder.mMovieTextView.setText(movie.title);
 
         String path ="http://image.tmdb.org/t/p/w342/"+movie.posterPath;
-        Picasso.with(context).load(path).into(movieHolder.mMovieImageView);
+        Picasso.with(context)
+                .load(path)
+                .placeholder(R.drawable.moviefilm)
+                .error(R.drawable.error_load)
+                .into(movieHolder.mMovieImageView);
 
     }
 

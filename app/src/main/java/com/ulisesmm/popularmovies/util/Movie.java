@@ -23,6 +23,7 @@ public class Movie implements Parcelable{
     public String posterPath;
     public Double popularity;
     public Double voteCount;
+    public Double voteAverage;
 
     /**
      *
@@ -39,7 +40,7 @@ public class Movie implements Parcelable{
         this.posterPath = jsonObject.getString("poster_path");
         this.popularity = jsonObject.getDouble("popularity");
         this.voteCount = jsonObject.getDouble("vote_count");
-
+        this.voteAverage = jsonObject.getDouble("vote_average");
     }
 
     /**
@@ -55,6 +56,7 @@ public class Movie implements Parcelable{
         this.posterPath = in.readString();
         this.popularity = in.readDouble();
         this.voteCount = in.readDouble();
+        this.voteAverage = in.readDouble();
     }
 
     @Override
@@ -72,9 +74,10 @@ public class Movie implements Parcelable{
         dest.writeString(posterPath);
         dest.writeDouble(popularity);
         dest.writeDouble(voteCount);
+        dest.writeDouble(voteAverage);
     }
 
-    Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>(){
+    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>(){
         @Override
         public Movie createFromParcel(Parcel source) {
             return new Movie(source);

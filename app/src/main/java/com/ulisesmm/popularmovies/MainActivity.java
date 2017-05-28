@@ -19,8 +19,12 @@ import com.ulisesmm.popularmovies.util.MovieAdapter;
 import com.ulisesmm.popularmovies.util.NetworkUtils;
 import com.ulisesmm.popularmovies.util.OpenMovieJsonUtils;
 
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 
 /**
@@ -30,24 +34,21 @@ import java.util.ArrayList;
  * of the course Associate Android Developer Fast Track Nanodegree Program of Udacity
  */
 
-public class MainActivity extends AppCompatActivity  implements MovieAdapter.MovieAdapterOnClickHandler{
+public class MainActivity extends AppCompatActivity  implements MovieAdapter.MovieAdapterOnClickHandler, MovieTaskAsync{
 
-    private RecyclerView mRecyclerView;
+    @BindView(R.id.rv_movies) RecyclerView mRecyclerView;
+    @BindView(R.id.tv_error_message_display) TextView mErrorMessageDisplay;
+    @BindView(R.id.pb_loading_indicator) ProgressBar mLoadingIndicator;
+
     private MovieAdapter mMovieAdapter;
     private GridLayoutManager gridLayoutManager;
-
-    private TextView mErrorMessageDisplay;
-    private ProgressBar mLoadingIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        mRecyclerView = (RecyclerView) findViewById(R.id.rv_movies);
-        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
+        ButterKnife.bind(this);
 
         int orientation = getResources().getConfiguration().orientation;
         if(orientation == Configuration.ORIENTATION_LANDSCAPE)
@@ -55,10 +56,8 @@ public class MainActivity extends AppCompatActivity  implements MovieAdapter.Mov
         else
             gridLayoutManager = new GridLayoutManager(this,3);
 
-
         mRecyclerView.setLayoutManager(gridLayoutManager);
         mRecyclerView.setHasFixedSize(true);
-
 
         mMovieAdapter = new MovieAdapter(this);
         mRecyclerView.setAdapter(mMovieAdapter);
@@ -66,10 +65,23 @@ public class MainActivity extends AppCompatActivity  implements MovieAdapter.Mov
         if(savedInstanceState == null || !savedInstanceState.containsKey("movies")){
             loadMovieData();
         }else{
-            mMovieAdapter.setMovies(savedInstanceState.getParcelableArrayList("movies"));
+            ArrayList<Movie> temp = savedInstanceState.getParcelableArrayList("movies");
+            if(temp != null && !temp.isEmpty()){
+                mMovieAdapter.setMovies(temp);
+            }else{
+                loadMovieData();
+            }
         }
+    }
 
-
+    @Override
+    public void movieFinishedTask(ArrayList<Movie> movies) {
+        if(movies != null) {
+            showMovieDataView();
+            mMovieAdapter.setMovies(movies);
+        }else{
+            showErrorMessage();
+        }
     }
 
     @Override
@@ -77,8 +89,6 @@ public class MainActivity extends AppCompatActivity  implements MovieAdapter.Mov
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList("movies", mMovieAdapter.getMovies());
     }
-
-
 
     private void showMovieDataView(){
         mErrorMessageDisplay.setVisibility(View.INVISIBLE);
@@ -97,28 +107,22 @@ public class MainActivity extends AppCompatActivity  implements MovieAdapter.Mov
     }
 
     private void loadMovieData(){
-        new FetchMovieTask().execute("now_playing");
+        new FetchMovieTask(this, this, mLoadingIndicator).execute("now_playing");
     }
 
     private void loadMostPopular(){
-        new FetchMovieTask().execute("popular");
+        new FetchMovieTask(this, this, mLoadingIndicator).execute("popular");
     }
 
     private void loadTopRated(){
-        new FetchMovieTask().execute("top_rated");
+        new FetchMovieTask(this, this, mLoadingIndicator).execute("top_rated");
     }
 
     @Override
     public void onClick(Movie movieDetail) {
         Context context = this;
-
-        Class destinationClass = MovieDetail.class;
-        Intent intentToStartDetailActivity = new Intent(context, destinationClass);
-        intentToStartDetailActivity.putExtra("original",movieDetail.originalTitle);
-        intentToStartDetailActivity.putExtra("poster_path", movieDetail.posterPath);
-        intentToStartDetailActivity.putExtra("overview", movieDetail.overview);
-        intentToStartDetailActivity.putExtra("rating", movieDetail.voteCount);
-        intentToStartDetailActivity.putExtra("date", movieDetail.releaseDate);
+        Intent intentToStartDetailActivity = new Intent(context, MovieDetailActivity.class);
+        intentToStartDetailActivity.putExtra("movieDetail", movieDetail);
         startActivity(intentToStartDetailActivity);
     }
 
@@ -140,49 +144,11 @@ public class MainActivity extends AppCompatActivity  implements MovieAdapter.Mov
         return super.onOptionsItemSelected(item);
     }
 
-    public class FetchMovieTask extends AsyncTask<String, Void, ArrayList<Movie>>{
+    /*public class FetchMovieTask extends AsyncTask<String, Void, ArrayList<Movie>> {
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-        }
 
-        @Override
-        protected ArrayList<Movie> doInBackground(String... params) {
-            if(params.length==0){
-                return null;
-            }
 
-            String urlStr = params[0];
-            URL moviesUrl = NetworkUtils.buildUrl(urlStr);
-            System.out.println(moviesUrl.toString());
-
-            try{
-                String jsonMovieResponse = NetworkUtils
-                        .getResponseFromHttpUrl(moviesUrl);
-
-                ArrayList<Movie> simpleJsonMovies = OpenMovieJsonUtils
-                        .getSimpleMovieStringsFromJson(MainActivity.this, jsonMovieResponse);
-
-                return simpleJsonMovies;
-            }catch (Exception e){
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<Movie> movies) {
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-            if(movies != null) {
-                showMovieDataView();
-                mMovieAdapter.setMovies(movies);
-            }else{
-                showErrorMessage();
-            }
-        }
-    }
+    }*/
 
 
 }
